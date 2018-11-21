@@ -18,22 +18,22 @@ Modify `cloudformation.template` as you wish:
 
 
 Generate Lambda code and upload it to S3
-  ``mvc clean install``   
-  ``aws s3 cp target/contractmonitor-1.0.0.jar s3://[S3BUCKET_IN_CLOUDFORMATION_TEMPLATE]/``
+
+  `mvc clean install` 
+  `aws s3 cp target/contractmonitor-1.0.0.jar s3://[S3BUCKET_IN_CLOUDFORMATION_TEMPLATE]/`
   
-Create the infrastructure 
+Create the infrastructure
+ 
   ``aws cloudformation create-stack --stack-name xx4  --notification-arns 'arn:aws:sns:eu-central-1:[ACCOUNT_ID]:SystemMessages' --template-body  file://src/main/resources/cloudformation.template``
    
 Confirm the subscription sent during the installation
 
 Import data if there is any:
+
   ``aws dynamodb batch-write-item --request-items file://Contracts.json`` 
 
   
 #Useful commands
-delete cloudformation stack: 
-	``aws cloudformation delete-stack --stack-name [STACK-NAME]``
+delete cloudformation stack: `aws cloudformation delete-stack --stack-name [STACK-NAME]`
 
-simple export:
-  	``aws dynamodb scan --table-name Contracts >export.json``
-
+simple export: `aws dynamodb scan --table-name Contracts >export.json`
