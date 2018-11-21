@@ -1,0 +1,165 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Parameters" : {
+    "ReadCapacityUnits" : {
+      "Description" : "Provisioned read throughput",
+      "Type" : "Number",
+      "Default" : "5",
+      "MinValue" : "5",
+      "MaxValue" : "10000",
+      "ConstraintDescription" : "must be between 5 and 10000"
+    },
+    "WriteCapacityUnits" : {
+      "Description" : "Provisioned write throughput",
+      "Type" : "Number",
+      "Default" : "10",
+      "MinValue" : "5",
+      "MaxValue" : "10000",
+      "ConstraintDescription" : "must be between 5 and 10000"
+    }
+  },
+  "Metadata" : {
+    "AWS::CloudFormation::Designer" : {
+      "76c9872d-affd-4306-b746-42bf80023df8" : {
+        "size" : {
+          "width" : 60,
+          "height" : 60
+        },
+        "position" : {
+          "x" : 290,
+          "y" : 110
+        },
+        "z" : 0,
+        "embeds" : [ ]
+      },
+      "ee296cbd-4158-4d4a-9480-1fb9deaf8c78" : {
+        "size" : {
+          "width" : 60,
+          "height" : 60
+        },
+        "position" : {
+          "x" : 440,
+          "y" : 110
+        },
+        "z" : 0,
+        "embeds" : [ ],
+        "dependson" : [ "76c9872d-affd-4306-b746-42bf80023df8", "9fb8321c-bfcf-4716-b3c8-3374ce211001" ]
+      },
+      "9fb8321c-bfcf-4716-b3c8-3374ce211001" : {
+        "size" : {
+          "width" : 60,
+          "height" : 60
+        },
+        "position" : {
+          "x" : 440,
+          "y" : -20
+        },
+        "z" : 0,
+        "embeds" : [ ]
+      }
+    }
+  },
+  "Resources" : {
+    "SNST116EY" : {
+      "Type" : "AWS::SNS::Topic",
+      "Properties" : {
+        "TopicName" : "ContractWatch",
+        "Subscription" : [ {
+          "Endpoint" : "buxibuxi@gmail.com",
+          "Protocol" : "email"
+        } ]
+      },
+      "Metadata" : {
+        "AWS::CloudFormation::Designer" : {
+          "id" : "9fb8321c-bfcf-4716-b3c8-3374ce211001"
+        }
+      }
+    },
+    "DDBT4A7KM" : {
+      "Type" : "AWS::DynamoDB::Table",
+      "Properties" : {
+        "TableName" : "Contracts",
+        "KeySchema" : [ {
+          "AttributeName" : "id",
+          "KeyType" : "HASH"
+        } ],
+        "AttributeDefinitions" : [ {
+          "AttributeName" : "id",
+          "AttributeType" : "N"
+        } ],
+        "ProvisionedThroughput" : {
+          "ReadCapacityUnits" : {
+            "Ref" : "ReadCapacityUnits"
+          },
+          "WriteCapacityUnits" : {
+            "Ref" : "WriteCapacityUnits"
+          }
+        }
+      },
+      "Metadata" : {
+        "AWS::CloudFormation::Designer" : {
+          "id" : "76c9872d-affd-4306-b746-42bf80023df8"
+        }
+      }
+    },
+    "EVNT01" : {
+      "Type" : "AWS::Events::Rule",
+      "Properties" : {
+        "Description" : "Daily run",
+        "Name" : "ContractMonitorSchedule",
+        "State" : "ENABLED",
+        "ScheduleExpression" : "rate(1 day)",
+        "Targets" : [{
+             "Arn": { "Fn::GetAtt": ["LF1TQVP", "Arn"] },
+             "Id":"handleRequest"
+            }
+        ]
+      },
+      "Metadata" : {
+        "AWS::CloudFormation::Designer" : {
+          "id" : "76c9872d-affd-4306-b746-42bf80021df8"
+        }
+      },
+      "DependsOn" : [ "LF1TQVP" ]
+    },
+    "PermissionForEventsToInvokeLambda": {
+  		"Type": "AWS::Lambda::Permission",
+		  "Properties": {
+			    "FunctionName": { "Ref": "LF1TQVP" },
+			    "Action": "lambda:InvokeFunction",
+			    "Principal": "events.amazonaws.com",
+			    "SourceArn": { "Fn::GetAtt": ["EVNT01", "Arn"] }
+		  }
+	},
+    "LF1TQVP" : {
+      "Type" : "AWS::Lambda::Function",
+      "Properties" : {
+        "Handler" : "eu.vargasoft.lambda.contractmonitor.LambdaFunctionHandler",
+        "FunctionName" : "handleRequest",
+        "Runtime" : "java8",
+        "Role" : {"Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/SiteMonitorRole"}, 
+        "Code" : {
+          "S3Bucket" : "bbaws-lambdacodes",
+          "S3Key" : "contractmonitor-1.0.0.jar"
+        },
+        "Timeout" : 25,
+        "MemorySize" : "256",
+        "Environment" : {
+          "Variables" : {
+            "DB_TABLE_NAME" : "Contracts",
+            "SNS_TOPIC" : {
+              "Fn::Sub": "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${SNST116EY.TopicName}" 
+            },
+            "NOTICE_RANGE_DAYS" : 100
+          }
+        }
+      },
+      "Metadata" : {
+        "AWS::CloudFormation::Designer" : {
+          "id" : "ee296cbd-4158-4d4a-9480-1fb9deaf8c78"
+        }
+      },
+      "DependsOn" : [ "DDBT4A7KM", "SNST116EY" ]
+    }
+  }
+}

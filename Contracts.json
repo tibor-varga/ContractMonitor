@@ -1,0 +1,71 @@
+    {
+	"Contracts": [    
+       
+        {
+			"PutRequest": {
+				"Item": {
+            "enddate": {
+                "S": "2020-01-03"
+            }, 
+            "": {
+                "S": "company"
+            }, 
+            "contract": {
+                "S": "contract6"
+            }, 
+            "active": {
+                "BOOL": true
+            }, 
+            "noticabletill": {
+                "S": "2019-10-03"
+            }, 
+            "id": {
+                "N": "103"
+            }
+        }}}, 
+        {
+			"PutRequest": {
+				"Item": {
+            "enddate": {
+                "S": "2019-02-25"
+            }, 
+            "": {
+                "S": "company"
+            }, 
+            "contract": {
+                "S": "contract3"
+            }, 
+            "active": {
+                "BOOL": true
+            }, 
+            "noticabletill": {
+                "S": "2019-01-25"
+            }, 
+            "id": {
+                "N": "105"
+            }
+        }}}, 
+        {
+			"PutRequest": {
+				"Item": {
+            "enddate": {
+                "S": "2019-07-03"
+            }, 
+            "": {
+                "S": "company"
+            }, 
+            "contract": {
+                "S": "contract3"
+            }, 
+            "active": {
+                "BOOL": true
+            }, 
+            "noticabletill": {
+                "S": "2019-04-03"
+            }, 
+            "id": {
+                "N": "101"
+            }
+        }}}
+]
+}

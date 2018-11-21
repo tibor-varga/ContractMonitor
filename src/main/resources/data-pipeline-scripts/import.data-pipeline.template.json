@@ -1,0 +1,109 @@
+{
+  "objects": [
+    {
+      "role": "DataPipelineDefaultRole",
+      "subject": "Contracts Import fails",
+      "name": "DefaultAction1",
+      "id": "ActionId_Lsstq",
+      "message": "import failed",
+      "type": "SnsAlarm",
+      "topicArn": "arn:aws:sns:us-east-1:822363990468:ContractsExportImport"
+    },
+    {
+      "bootstrapAction": "s3://#{myDDBRegion}.elasticmapreduce/bootstrap-actions/configure-hadoop, --mapred-key-value,mapreduce.map.speculative=false",
+      "name": "EmrClusterForLoad",
+      "coreInstanceCount": "1",
+      "coreInstanceType": "m3.xlarge",
+      "amiVersion": "3.9.0",
+      "id": "EmrClusterForLoad",
+      "masterInstanceType": "m3.xlarge",
+      "region": "#{myDDBRegion}",
+      "type": "EmrCluster"
+    },
+    {
+      "failureAndRerunMode": "CASCADE",
+      "resourceRole": "DataPipelineDefaultResourceRole",
+      "role": "DataPipelineDefaultRole",
+      "scheduleType": "ONDEMAND",
+      "name": "Default",
+      "id": "Default"
+    },
+    {
+      "writeThroughputPercent": "#{myDDBWriteThroughputRatio}",
+      "name": "DDBDestinationTable",
+      "id": "DDBDestinationTable",
+      "type": "DynamoDBDataNode",
+      "tableName": "#{myDDBTableName}"
+    },
+    {
+      "role": "DataPipelineDefaultRole",
+      "subject": "Contracts import successful",
+      "name": "DefaultAction2",
+      "id": "ActionId_rmwc6",
+      "type": "SnsAlarm",
+      "message": "Contracts import successful",
+      "topicArn": "arn:aws:sns:us-east-1:822363990468:ContractsExportImport"
+    },
+    {
+      "output": {
+        "ref": "DDBDestinationTable"
+      },
+      "input": {
+        "ref": "S3InputDataNode"
+      },
+      "onFail": {
+        "ref": "ActionId_Lsstq"
+      },
+      "maximumRetries": "2",
+      "name": "TableLoadActivity",
+      "step": "s3://dynamodb-emr-#{myDDBRegion}/emr-ddb-storage-handler/2.1.0/emr-ddb-2.1.0.jar,org.apache.hadoop.dynamodb.tools.DynamoDbImport,#{input.directoryPath},#{output.tableName},#{output.writeThroughputPercent}",
+      "runsOn": {
+        "ref": "EmrClusterForLoad"
+      },
+      "id": "TableLoadActivity",
+      "type": "EmrActivity",
+      "onSuccess": {
+        "ref": "ActionId_rmwc6"
+      },
+      "resizeClusterBeforeRunning": "true"
+    },
+    {
+      "directoryPath": "#{myInputS3Loc}",
+      "name": "S3InputDataNode",
+      "id": "S3InputDataNode",
+      "type": "S3DataNode"
+    }
+  ],
+  "parameters": [
+    {
+      "description": "Input S3 folder",
+      "id": "myInputS3Loc",
+      "type": "AWS::S3::ObjectKey"
+    },
+    {
+      "description": "Target DynamoDB table name",
+      "id": "myDDBTableName",
+      "type": "String"
+    },
+    {
+      "default": "0.25",
+      "watermark": "Enter value between 0.1-1.0",
+      "description": "DynamoDB write throughput ratio",
+      "id": "myDDBWriteThroughputRatio",
+      "type": "Double"
+    },
+    {
+      "default": "us-east-1",
+      "watermark": "us-east-1",
+      "description": "Region of the DynamoDB table",
+      "id": "myDDBRegion",
+      "type": "String"
+    }
+  ],
+  "values": {
+    "myDDBRegion": "eu-central-1",
+    "myDDBTableName": "Contracts",
+    "myDDBWriteThroughputRatio": "0.25",
+    "myInputS3Loc": "s3://bbaws-lambdacodes/2018-11-20-13-30-21/"
+  }
+}
